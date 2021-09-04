@@ -1,5 +1,6 @@
 import json
 
+from Parsers import parser_dict
 from dataclasses import dataclass
 
 @dataclass
@@ -47,8 +48,22 @@ class JournalParser():
         return out 
 
 def parser_exporter(site: str, site_data) -> JournalParser:
-    return JournalParser(parser_dict[site], site_data)
+    """ Returns the appropiate JournalParser object together with some exception
+    handling.
+    """
+    try:
+        parameters = parser_dict[site]
+    except KeyError:
+        raise Exception(f"Couldn't find parser for site: {site}")
 
+    return JournalParser(parameters, site_data)
+
+"""
+The parser_dict contains the parser data for each journal. To add a new one,
+add a new entry with the appropiate parameters. See JournalParser.py and the 
+ParserParams dataclass to see which fields are allowed.
+"""
+    
 parser_dict = {
     "elpais.com"            : ParserParams(json_index=1),
     "elconfidencial.com"    : ParserParams(),
@@ -56,3 +71,4 @@ parser_dict = {
     "ara.cat"               : ParserParams(),
     "elespanol.com"         : ParserParams(first_paragraph=7, last_paragraph=-5)
 }
+

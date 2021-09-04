@@ -1,6 +1,5 @@
 import json
 
-from Parsers import parser_dict
 from dataclasses import dataclass
 
 @dataclass
@@ -33,7 +32,7 @@ class JournalParser():
         # In some journals, d["image"] are lists, while in some others 
         # are single instances of dict:
         images = json_dict["image"]
-        if isinstance(json_dict["image"], list):
+        if isinstance(images, list):
             image_string = '\n'.join([f'<img src="{im["url"]}" width="280">' 
                                         for im in images])
         else:

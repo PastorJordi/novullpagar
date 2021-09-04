@@ -81,5 +81,5 @@ if __name__=="__main__":
         "eldiario"          : "https://www.eldiario.es/escolar" # Not yet implemented
     }
 
-    q = nvp(test_urls["eldiario"])
+    q = nvp(test_urls["ara"])
     q.parse()

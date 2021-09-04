@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import sys
 import os
 
+
 class nvp():
     """just using a class to better organize the code"""
     def __init__(self, url, savpath=None):
@@ -28,13 +29,14 @@ class nvp():
         else:
             self.savpath = savpath
 
+        self.detect_journal()
 
     def detect_journal(self):
         # find journal, strip https://(www.)
         if self.url[8:].startswith('www.'):
             suburl = self.url[12:]
         else:
-            suburl =self.url[8:]
+            suburl = self.url[8:]
 
         self.site, *_, self.article_name = suburl.split('/') # fancy but parhaps fragile?
 
@@ -47,7 +49,9 @@ class nvp():
 
     parsers = { # dictionary to pair site with method_name, used by "parse"
         'elpais.com':'elpais',
-        'elconfidencial.com': 'elconfidencial'
+        'elconfidencial.com': 'elconfidencial',
+        'elmundo.es': 'elmundo',
+        'ara.cat': 'ara'
     }
 
     def parse(self):
@@ -64,9 +68,9 @@ class nvp():
             fpath = self.savpath + self.article_name
 
         with open("output1.html", "w", encoding='utf-8') as file:
-        file.write(
-            nvp.html_header + html 
-        )
+            file.write(
+                nvp.html_header + html 
+            )
 
     # individual parsers below.
 
@@ -106,7 +110,7 @@ class nvp():
                 ]
             else:
                 body_content += [str(c_content[0])]
-        scr = soup.findAll('script', type="application/ld+json")
+        scr = self.soup.findAll('script', type="application/ld+json")
         d = json.loads(scr[0].string)
         out = (
             f"<h1>{d['headline']}</h1><h2>{d['description']}</h2>"+
@@ -117,10 +121,34 @@ class nvp():
         )
         return out
 
+    def elmundo(self):
+        paragraphs = self.soup.findAll('p')[2:-1]
+        body_content = [p.get_text() for p in paragraphs]
+        scr = self.soup.findAll('script', type="application/ld+json")
+        d = json.loads(scr[0].string, strict=False)
+        print(d)
+        out = (
+            f"<h1>{d['headline']}</h1>"+
+            '<p>'+('</p><p>'.join(body_content))+'</p>'+ # using double
+            '\n' + f'<img src="{d["image"]["url"]}" width="280">'
+            )
+        return out 
+
+    def ara(self):        
+        paragraphs = self.soup.findAll('p')[:-1]
+        body_content = [p.get_text() for p in paragraphs]
+        scr = self.soup.findAll('script', type="application/ld+json")
+        d = json.loads(scr[0].string)
+        out = (
+            f"<h1>{d['headline']}</h1>"+
+            '<p>'+('</p><p>'.join(body_content))+'</p>'+ # using double
+            '\n' + f'<img src="{d["image"]["url"]}" width="280">'
+            )
+        return out
 
 if __name__=="__main__":
-    url = 'https://elpais.com/opinion/2021-09-01/vacunarse-es-una-obligacion-civica-y-solidaria.html'
+    url = "https://www.ara.cat/politica/new-york-times-aprofundeix-presumptes-vincles-l-entorn-puigdemont-russia_1_4104228.html"
+    #url = "https://www.elmundo.es/opinion/editorial/2021/09/03/61310a88e4d4d8ce758b45d0.html"
+    #url = "https://elpais.com/espana/2021-09-03/hacienda-solicita-a-la-casa-real-los-pagos-que-ha-hecho-juan-carlos-i-desde-su-abdicacion-hasta-2018.html"
     q = nvp(url)
-    q.detect_journal()
-    print(q.html_header)
-    #print(q.parse())
+    q.parse()

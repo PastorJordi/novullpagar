@@ -35,6 +35,9 @@ class nvp():
             suburl = self.url[12:]
         else:
             suburl =self.url[8:]
+        
+        if suburl.endswith('/'):
+            suburl = suburl[:-1]
 
         self.site, *_, self.article_name = suburl.split('/') # fancy but parhaps fragile?
 
@@ -58,15 +61,24 @@ class nvp():
         method = getattr(self, nvp.parsers[self.site])
         html = method()
         # few checks to dst file
+        print(self.savpath)
+        
         if os.path.isdir(self.savpath):
+            print('a')
             if not self.savpath.endswith('/'):
                 self.savpath += '/'
             fpath = self.savpath + self.article_name
 
-        with open("output1.html", "w", encoding='utf-8') as file:
-        file.write(
-            nvp.html_header + html 
-        )
+        if not fpath.endswith('.html'):
+            print('b')
+            fpath += '.html'
+
+        print(fpath)
+
+        with open(fpath, "w", encoding='utf-8') as file:
+            file.write(
+                nvp.html_header + html 
+            )
 
     # individual parsers below.
 
@@ -106,21 +118,29 @@ class nvp():
                 ]
             else:
                 body_content += [str(c_content[0])]
-        scr = soup.findAll('script', type="application/ld+json")
+        scr = self.soup.findAll('script', type="application/ld+json")
         d = json.loads(scr[0].string)
+
         out = (
             f"<h1>{d['headline']}</h1><h2>{d['description']}</h2>"+
-            '<p>'+('</p><p>'.join(body_content))+'</p>'+ # using double
-            '\n  '.join([
+            '<p>'+('</p><p>'.join(body_content))+'</p>'
+        )
+        if isinstance(d['image'], dict): # sometimes it has a list and sometimes a dict
+            out += f'\n<img src="{d["image"]["url"]}" width="280">'
+        elif isinstance(d['image'], list):
+            out += '\n  '.join([
                 f'<img src="{d["image"][i]["url"]}" width="280">' for i in range(len(d['image']))
             ])
-        )
+
         return out
 
 
 if __name__=="__main__":
-    url = 'https://elpais.com/opinion/2021-09-01/vacunarse-es-una-obligacion-civica-y-solidaria.html'
+    # url = 'https://elpais.com/opinion/2021-09-01/vacunarse-es-una-obligacion-civica-y-solidaria.html'
+    # url = 'https://www.elconfidencial.com/espana/cataluna/2021-08-14/electrica-publica-colau-verde-barata-rentable_3230902/'
+    url = 'https://www.elmundo.es/opinion/2021/09/01/612e6062fc6c837e4a8b458f.html'
     q = nvp(url)
     q.detect_journal()
-    print(q.html_header)
+    q.parse()
+    #print(q.html_header)
     #print(q.parse())

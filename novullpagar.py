@@ -65,7 +65,7 @@ class nvp():
                 self.savpath += '/'
             fpath = self.savpath + self.article_name
 
-        with open("output1.html", "w", encoding='utf-8') as file:
+        with open(fpath, "w", encoding='utf-8') as file:
             file.write(
                 nvp.html_header + html 
             )
@@ -81,5 +81,5 @@ if __name__=="__main__":
         "eldiario"          : "https://www.eldiario.es/escolar" # Not yet implemented
     }
 
-    q = nvp(test_urls["ara"])
+    q = nvp(test_urls["elespanol"])
     q.parse()

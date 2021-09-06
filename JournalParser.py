@@ -1,6 +1,7 @@
 import json
 
 from dataclasses import dataclass
+# TODO: getting text from ld+json retrieves text but not hyperlinks!
 
 @dataclass
 class ParserParams:
@@ -23,6 +24,7 @@ class JournalParser():
         """ Generic parsing method that should work on all journals. """
         # Get the article text with the p-tags so we can reconstruct it later:
         paragraphs = self.soup.findAll('p')[self.params.first_paragraph:self.params.last_paragraph]
+        print(paragraphs)
         body_content = [p.get_text() for p in paragraphs]
 
         # Get the JSON data for the headline, description, images...

@@ -64,6 +64,13 @@ class nvp():
             if not self.savpath.endswith('/'):
                 self.savpath += '/'
             fpath = self.savpath + self.article_name
+        else:
+            fpath = self.savpath
+
+        if fpath.endswith('/'):
+            fpath = fpath[:-1] 
+        if not fpath.endswith('.html'):
+            fpath += '.html'
 
         with open(fpath, "w", encoding='utf-8') as file:
             file.write(
@@ -72,14 +79,23 @@ class nvp():
 
 if __name__=="__main__":
 
-    test_urls = {
-        "elpais"            : "https://elpais.com/espana/2021-09-03/hacienda-solicita-a-la-casa-real-los-pagos-que-ha-hecho-juan-carlos-i-desde-su-abdicacion-hasta-2018.html",
-        "ara"               : "https://www.ara.cat/politica/new-york-times-aprofundeix-presumptes-vincles-l-entorn-puigdemont-russia_1_4104228.html",
-        "elmundo"           : "https://www.elmundo.es/opinion/editorial/2021/09/03/61310a88e4d4d8ce758b45d0.html",
-        "elconfidencial"    : "https://www.elconfidencial.com/cultura/2021-09-03/dune-denis-villeneuve-critica_3269702/",
-        "elespanol"         : "https://www.elespanol.com/opinion/tribunas/20210901/covid-19-vuelta-normalidad-todavia-lejos/608559145_12.html",
-        "eldiario"          : "https://www.eldiario.es/escolar" # Not yet implemented
-    }
+    help_msg = 'usage: python3 novullpagar.py [url] (path_to_store_html)'
 
-    q = nvp(test_urls["elespanol"])
+    # assert sys.argv>1, help_msg # debugging with code below
+    assert len(sys.argv)<4, help_msg
+
+    if len(sys.argv)>1: # expected behavior
+        q = nvp(*sys.argv[1:])
+    else: # debug        
+        test_urls = {
+            "elpais"            : "https://elpais.com/espana/2021-09-03/hacienda-solicita-a-la-casa-real-los-pagos-que-ha-hecho-juan-carlos-i-desde-su-abdicacion-hasta-2018.html",
+            "ara"               : "https://www.ara.cat/politica/new-york-times-aprofundeix-presumptes-vincles-l-entorn-puigdemont-russia_1_4104228.html",
+            "elmundo"           : "https://www.elmundo.es/opinion/editorial/2021/09/03/61310a88e4d4d8ce758b45d0.html",
+            "elconfidencial"    : "https://www.elconfidencial.com/cultura/2021-09-03/dune-denis-villeneuve-critica_3269702/",
+            "elespanol"         : "https://www.elespanol.com/opinion/tribunas/20210901/covid-19-vuelta-normalidad-todavia-lejos/608559145_12.html",
+            "eldiario"          : "https://www.eldiario.es/escolar/mil-dias-bloqueo-antidemocratico-judicial_132_8258583.html" # Not yet implemented
+        }
+
+        q = nvp(test_urls["elespanol"])
+    
     q.parse()

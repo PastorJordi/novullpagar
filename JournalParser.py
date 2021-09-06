@@ -24,8 +24,23 @@ class JournalParser():
         """ Generic parsing method that should work on all journals. """
         # Get the article text with the p-tags so we can reconstruct it later:
         paragraphs = self.soup.findAll('p')[self.params.first_paragraph:self.params.last_paragraph]
-        print(paragraphs)
-        body_content = [p.get_text() for p in paragraphs]
+
+        # body_content = [p.get_text() for p in paragraphs]
+        # switching back to old strategy to retrieve (.contents) and keep hrefs/links
+        body_content = []
+        for item in paragraphs: 
+            c_content = item.contents
+            if c_content is None:
+                continue
+            if len(c_content)>1:
+                body_content += [
+                    "".join([str(x) for x in c_content])
+                ]
+            elif isinstance(c_content, list):
+                if len(c_content):
+                    body_content += [str(c_content[0])]
+            else:
+                body_content += str(c_content)
 
         # Get the JSON data for the headline, description, images...
         scr = self.soup.findAll('script', type="application/ld+json")

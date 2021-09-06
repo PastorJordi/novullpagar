@@ -1,5 +1,9 @@
 # novullpagar
-Retrieves visible paywalled articles from Spanish journals. Currently it only supports Linux.
+Retrieves visible paywalled articles from Spanish journals. Currently it only supports Linux.  
+use it with command: `python novullpagar.py [url] [path_to_store_html]`  
+or (after exporting the alias)  
+`novullpagar [url] [path_to_store_html]`  
+second argument is optional (defaults to current directory)  
 
 # "install"
 For simplicity it is released as a standalone python script. Use an alias to call it with `novullpagar.sh`.

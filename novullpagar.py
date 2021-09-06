@@ -6,12 +6,17 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass
 import webbrowser
 from selenium import webdriver
+import time
 # this is integrated in the same file now.
 # from JournalParser import parser_exporter
 
 ## MINIMAL CONFIG FOR SELENIUM
-EXEC_PATH = None # eg. 
-DRIVER_PATH = None
+# EXEC_PATH = None #
+
+DRIVER_PATH = os.path.join(
+    os.path.dirname(sys.argv[0]), # script path
+    'chromedriver'
+    )
 
 class nvp():
     """just using a class to better organize the code"""
@@ -23,17 +28,7 @@ class nvp():
         self.article_name = None
         self.htmlfile = None
 
-        try:
-            self.page = requests.get(url)
-        except Exception as e:
-            print(f'failed when requesting url {url}')
-            raise e
-
-        try:
-            self.soup = BeautifulSoup(self.page.content, 'html.parser')
-        except Exception as e:
-            print(f'failed when parsing page content')
-            raise e
+        
 
         if savpath is None:
             self.savpath = os.getcwd()
@@ -54,7 +49,7 @@ class nvp():
 
     def get_parser(self): 
         #self.parser = parser_exporter(self.site, self.soup)
-        self.parser = parser_exporter(self.site, self.soup)
+        self.parser = parser_exporter(self.site, self.url)
 
 
     html_header = (
@@ -94,6 +89,8 @@ class ParserParams:
     """ Class that keeps track of the parameters of a specific parser,
         with some sensible defaults provided. 
     """
+    # TODO: @AFont What's the advantage of creating a class for it? vs e.g.
+    # having default kwargs and passing a dict of kwargs which can be unpacked.?
     first_paragraph: int    = 0
     last_paragraph: int     = -1
     json_index: int         = 0
@@ -102,10 +99,39 @@ class ParserParams:
 class JournalParser():
     """ Parses a specific journal. """
 
-    def __init__(self, parser_params: ParserParams, data):
+    def __init__(self, parser_params: ParserParams, url):
 
         self.params = parser_params
-        self.soup = data
+        self.url = url
+
+
+        if not self.params.selenium:
+            try:
+                self.page = requests.get(url)
+            except Exception as e:
+                print(f'failed when requesting url {url}')
+                raise e
+
+            try:
+                self.soup = BeautifulSoup(self.page.content, 'html.parser')
+            except Exception as e:
+                print(f'failed when parsing page content')
+                raise e
+        else:
+            # load content using headless selenium
+            options = webdriver.chrome.options.Options()
+            options.add_argument("--headless")
+            ## TODO: adapt to firefox & edge?
+            browser = webdriver.Chrome(
+                DRIVER_PATH,
+                options=options
+            )
+            browser.get(url) 
+            browser.implicitly_wait(4) 
+            time.sleep(4)
+            self.soup = BeautifulSoup(browser.page_source, "html.parser")
+            browser.quit()
+        
 
     def parse_journal(self) -> str:
         """ Generic parsing method that should work on all journals. """
@@ -175,7 +201,7 @@ parser_dict = {
     "elespanol.com"         : ParserParams(first_paragraph=7, last_paragraph=-5),
     "eldiario.es"           : ParserParams(first_paragraph=2, last_paragraph=-11),
     "elperiodico.com"       : ParserParams(first_paragraph=8, last_paragraph=-7),
-    # "abc.es"                : ParserParams() # this paywall actually works!
+    "abc.es"                : ParserParams(last_paragraph=-7,selenium=True) 
 }
 
 
@@ -183,8 +209,12 @@ parser_dict = {
 # Actually run the script, as a standalone cmd (# generate a .sh to export alias)
 if __name__=="__main__":
 
-    help_msg = 'usage: python3 novullpagar.py [url] (path_to_store_html)'
-
+    help_msg = """
+        usage: 
+            python3 novullpagar.py [url] (path_to_store_html) 
+        or (if using alias)
+        novullpagar [url] (path_to_store_html)'
+        """
     # assert sys.argv>1, help_msg # debugging with code below
     assert len(sys.argv)<4, help_msg
 

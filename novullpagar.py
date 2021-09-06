@@ -4,8 +4,14 @@ import os
 import json
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
+import webbrowser
+from selenium import webdriver
 # this is integrated in the same file now.
 # from JournalParser import parser_exporter
+
+## MINIMAL CONFIG FOR SELENIUM
+EXEC_PATH = None # eg. 
+DRIVER_PATH = None
 
 class nvp():
     """just using a class to better organize the code"""
@@ -15,6 +21,7 @@ class nvp():
         self.url = url
         self.site = None
         self.article_name = None
+        self.htmlfile = None
 
         try:
             self.page = requests.get(url)
@@ -45,8 +52,10 @@ class nvp():
 
         self.site, *_, self.article_name = suburl.split('/') # fancy but parhaps fragile?
 
-    def get_parser(self):
+    def get_parser(self): 
+        #self.parser = parser_exporter(self.site, self.soup)
         self.parser = parser_exporter(self.site, self.soup)
+
 
     html_header = (
     '<!DOCTYPE html>\n'
@@ -78,6 +87,7 @@ class nvp():
             file.write(
                 nvp.html_header + html 
             )
+        self.htmlfile = fpath
 
 @dataclass
 class ParserParams:
@@ -87,6 +97,7 @@ class ParserParams:
     first_paragraph: int    = 0
     last_paragraph: int     = -1
     json_index: int         = 0
+    selenium: bool          = False # whether to use selenium to load page
 
 class JournalParser():
     """ Parses a specific journal. """
@@ -161,7 +172,10 @@ parser_dict = {
     "elconfidencial.com"    : ParserParams(),
     "elmundo.es"            : ParserParams(), # elMundo has different paywall messages
     "ara.cat"               : ParserParams(),
-    "elespanol.com"         : ParserParams(first_paragraph=7, last_paragraph=-5)
+    "elespanol.com"         : ParserParams(first_paragraph=7, last_paragraph=-5),
+    "eldiario.es"           : ParserParams(first_paragraph=2, last_paragraph=-11),
+    "elperiodico.com"       : ParserParams(first_paragraph=8, last_paragraph=-7),
+    # "abc.es"                : ParserParams() # this paywall actually works!
 }
 
 
@@ -183,9 +197,11 @@ if __name__=="__main__":
             "elmundo"           : "https://www.elmundo.es/opinion/editorial/2021/09/03/61310a88e4d4d8ce758b45d0.html",
             "elconfidencial"    : "https://www.elconfidencial.com/cultura/2021-09-03/dune-denis-villeneuve-critica_3269702/",
             "elespanol"         : "https://www.elespanol.com/opinion/tribunas/20210901/covid-19-vuelta-normalidad-todavia-lejos/608559145_12.html",
-            "eldiario"          : "https://www.eldiario.es/escolar/mil-dias-bloqueo-antidemocratico-judicial_132_8258583.html" # Not yet implemented
+            "eldiario"          : "https://www.eldiario.es/escolar/mil-dias-bloqueo-antidemocratico-judicial_132_8258583.html", # Not yet implemented
+            "elperiodico"       : "https://www.elperiodico.com/es/opinion/20210901/autopistas-medio-siglo-despues-articulo-jordi-mercader-12033522"
         }
 
         q = nvp(test_urls["elespanol"])
     
     q.parse()
+    webbrowser.open(q.htmlfile)

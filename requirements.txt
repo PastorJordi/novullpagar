@@ -1,0 +1,4 @@
+requests
+dataclasses
+bs4
+selenium

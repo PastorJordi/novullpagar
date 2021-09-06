@@ -131,3 +131,4 @@ dmypy.json
 # repo dev.
 debug.ipynb
 novullpagar.sh
+chromedriver

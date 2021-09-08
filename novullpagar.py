@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import webbrowser
 from selenium import webdriver
 import time
+from pprint import pprint
 # this is integrated in the same file now.
 # from JournalParser import parser_exporter
 
@@ -84,17 +85,20 @@ class nvp():
             )
         self.htmlfile = fpath
 
+# Adding AFont24 work in the same script
 @dataclass
 class ParserParams:
     """ Class that keeps track of the parameters of a specific parser,
         with some sensible defaults provided. 
     """
-    # TODO: @AFont What's the advantage of creating a class for it? vs e.g.
+    # TODO: @AFont24 What's the advantage of creating a class for it? vs e.g.
     # having default kwargs and passing a dict of kwargs which can be unpacked.?
     first_paragraph: int    = 0
     last_paragraph: int     = -1
-    json_index: int         = 0
+    json_index: int         = 0 # which index of 'script', type="application/ld+json" to take
+    json_level: int         = None
     selenium: bool          = False # whether to use selenium to load page
+    body_from_json: bool    = False # parse body text from json
 
 class JournalParser():
     """ Parses a specific journal. """
@@ -138,26 +142,35 @@ class JournalParser():
         # Get the article text with the p-tags so we can reconstruct it later:
         paragraphs = self.soup.findAll('p')[self.params.first_paragraph:self.params.last_paragraph]
 
-        # body_content = [p.get_text() for p in paragraphs]
-        # switching back to old strategy to retrieve (.contents) and keep hrefs/links
-        body_content = []
-        for item in paragraphs: 
-            c_content = item.contents
-            if c_content is None:
-                continue
-            if len(c_content)>1:
-                body_content += [
-                    "".join([str(x) for x in c_content])
-                ]
-            elif isinstance(c_content, list):
-                if len(c_content):
-                    body_content += [str(c_content[0])]
-            else:
-                body_content += str(c_content)
-
         # Get the JSON data for the headline, description, images...
         scr = self.soup.findAll('script', type="application/ld+json")
-        json_dict = json.loads(scr[self.params.json_index].string, strict=False)
+        json_dict = json.loads(scr[self.params.json_index].string, strict=False) # ?
+        #pprint(json_dict)
+        if self.params.json_level is not None: # retrieve the level we want 
+            json_dict = json_dict[self.params.json_level]
+        print(json_dict.keys())
+        #pprint(json_dict)
+        print(json_dict['articleBody'])
+        # body_content = [p.get_text() for p in paragraphs]
+        # switching back to old strategy to retrieve (.contents) and keep hrefs/links
+        if not self.params.body_from_json:
+            body_content = []
+            for item in paragraphs: # loop over paragraphs and concatenate content
+                c_content = item.contents
+                if c_content is None:
+                    continue
+                if len(c_content)>1:
+                    body_content += [
+                        "".join([str(x) for x in c_content])
+                    ]
+                elif isinstance(c_content, list):
+                    if len(c_content):
+                        body_content += [str(c_content[0])]
+                else:
+                    body_content += str(c_content)
+        else:
+            body_content = [json_dict['articleBody']] # include string in a list so we maintain code below
+
 
         # In some journals, d["image"] are lists, while in some others 
         # are single instances of dict:
@@ -168,9 +181,16 @@ class JournalParser():
         else:
             image_string = '\n' + f'<img src="{images["url"]}" width="280">'
 
+        # set subtitle if there's no articleBody
+        if 'articleBody' not in json_dict.keys():
+            subtitle=f"<h2>{json_dict['description']}</h2>"
+        else:
+            subtitle = '' # no subtitle
+
         out = (
-            f"<h1>{json_dict['headline']}</h1>"
-            + '<p>'+('</p><p>'.join(body_content))+'</p>' # using double
+            f"<h1>{json_dict['headline']}</h1>" # TODO: @AFont24: why was description removed?
+            + subtitle
+            + '<p>'+('</p><p>'.join(body_content))+'</p>' # set paragraphs again
             + image_string
             )
 
@@ -201,7 +221,8 @@ parser_dict = {
     "elespanol.com"         : ParserParams(first_paragraph=7, last_paragraph=-5),
     "eldiario.es"           : ParserParams(first_paragraph=2, last_paragraph=-11),
     "elperiodico.com"       : ParserParams(first_paragraph=8, last_paragraph=-7),
-    "abc.es"                : ParserParams(last_paragraph=-7,selenium=True) 
+    "abc.es"                : ParserParams(last_paragraph=-7, selenium=True),
+    "marca.com"             : ParserParams(body_from_json=True, json_level=0) 
 }
 
 

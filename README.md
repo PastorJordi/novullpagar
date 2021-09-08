@@ -12,7 +12,14 @@ You can use `pip install -r requirements.txt` to install dependencies.
 
 # installing chromedriver:
 You can get an appropriaversion from [their site](https://sites.google.com/a/chromium.org/chromedriver/downloads) and install it.  
-If you never did that before, you can follow [this guide](https://tecadmin.net/setup-selenium-chromedriver-on-ubuntu/) (until step3)
+If you never did that before, you can follow [this guide](https://tecadmin.net/setup-selenium-chromedriver-on-ubuntu/) (until step3).  
+There are other drivers out there if you prefere not to use chrome.  
 
 # motivation
 There's some context in this [post](https://pastorjordi.github.io/blog/2021/spanish_paywalled_articles/). Also, thanks for contributing, [AFont24](https://github.com/AFont24)
+
+
+# support
+OS: Ubuntu, by now (alias export, other stuff should work)
+  
+sites (needs debug):  elpais, elconfidencial, elmundo, elespañol, eldiario, elperiodico, abc, marca

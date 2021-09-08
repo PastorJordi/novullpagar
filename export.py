@@ -2,13 +2,13 @@ import os
 cwd = os.getcwd()
 
 env_section = ''
-env_name = os.getenv(['CONDA_DEFAULT_ENV'], 'base')
+env_name = os.getenv('CONDA_DEFAULT_ENV', 'base')
 if env_name!='base':
     env_section = f'source activate {env_name}\n'
 
 base_script = (
     '#!/bin/bash\n'
-    env_section
+    +env_section+
     f'python3 {os.path.join(cwd, "novullpagar.py")} "$@"'
 )
 

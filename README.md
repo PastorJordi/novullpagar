@@ -1,3 +1,6 @@
+Way better alternatives can be found [here](https://12ft.io/) and [here](https://gitlab.com/magnolia1234/bypass-paywalls-chrome-clean)
+
+
 # novullpagar
 Retrieves visible paywalled articles from Spanish journals. Currently it only supports Linux.  
 use it with command: `python novullpagar.py [url] [path_to_store_html]`  
@@ -23,3 +26,6 @@ There's some context in this [post](https://pastorjordi.github.io/blog/2021/span
 OS: Ubuntu, by now (alias export, other stuff should work)
   
 sites (needs debug):  elpais, elconfidencial, elmundo, elespañol, eldiario, elperiodico, abc, marca
+
+
+rationale in [this blog entry](https://pastorjordi.github.io/blog/2021/spanish_paywalled_articles/)
